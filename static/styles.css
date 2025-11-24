@@ -413,22 +413,78 @@ h6 {
   position: relative;
 }
 
-.mode-select-card input:checked+div {
-  background: #ffffff;
-  border-color: var(--color-accent-primary);
-  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.1), 0 2px 4px -1px rgba(99, 102, 241, 0.06);
-  transform: translateY(-2px);
+/* Hide the radio input completely */
+.mode-select-card input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-.mode-select-card div {
+/* New Flat Card Style */
+.mode-card {
   background: #ffffff;
   border: 2px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
-.mode-select-card:hover div {
+.mode-select-card:hover .mode-card {
   border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.mode-select-card input:checked+.mode-card {
+  background: #ffffff;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.1), 0 2px 4px -1px rgba(99, 102, 241, 0.06);
+  transform: translateY(-1px);
+}
+
+.mode-card-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mode-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mode-info h4 {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.mode-info p {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0.1rem 0 0 0;
+}
+
+.check-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-accent-primary);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.mode-select-card input:checked+.mode-card .check-icon {
+  opacity: 1;
 }
 
 /* History Filters */
@@ -547,6 +603,10 @@ h6 {
 
 .text-white {
   color: #1e293b !important;
+}
+
+.text-white-force {
+  color: #ffffff !important;
 }
 
 /* Map white text to dark slate for readability on light bg */

@@ -26,7 +26,7 @@
           <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 z-0"></div>
           <div class="relative z-10">
             <div class="mb-12">
-              <img src="static/photo/logo2.png" alt="ポケメン ロゴ" class="h-12 w-auto drop-shadow-lg" />
+              <img src="static/photo/logo1.png" alt="ポケメン ロゴ" class="h-12 w-auto drop-shadow-lg" />
             </div>
 
             <h2 class="text-4xl sm:text-5xl font-bold leading-tight mb-6 text-slate-900">
@@ -39,8 +39,8 @@
 
             <div class="space-y-8">
               <div class="flex items-start gap-4">
-                <div class="p-2 rounded-lg bg-white/10 backdrop-blur-sm">
-                  <i data-lucide="zap" class="w-6 h-6 text-yellow-300"></i>
+                <div class="p-2 rounded-lg bg-yellow-100 backdrop-blur-sm">
+                  <i data-lucide="zap" class="w-6 h-6 text-yellow-600"></i>
                 </div>
                 <div>
                   <h3 class="font-semibold text-slate-900 text-lg">リアルタイム分析</h3>
@@ -48,8 +48,8 @@
                 </div>
               </div>
               <div class="flex items-start gap-4">
-                <div class="p-2 rounded-lg bg-white/10 backdrop-blur-sm">
-                  <i data-lucide="mic" class="w-6 h-6 text-pink-300"></i>
+                <div class="p-2 rounded-lg bg-pink-100 backdrop-blur-sm">
+                  <i data-lucide="mic" class="w-6 h-6 text-pink-600"></i>
                 </div>
                 <div>
                   <h3 class="font-semibold text-slate-900 text-lg">音声対話モード</h3>
@@ -303,8 +303,8 @@
                 class="p-8 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg relative overflow-hidden">
                 <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                 <div class="relative z-10">
-                  <h2 class="text-3xl font-bold text-white">面接設定</h2>
-                  <p class="mt-2 text-indigo-50 opacity-90 font-medium">シミュレーション条件を設定して、AI面接官とのセッションを開始します。</p>
+                  <h2 class="text-3xl font-bold text-white-force">面接設定</h2>
+                  <p class="mt-2 text-white-force opacity-90 font-medium">シミュレーション条件を設定して、AI面接官とのセッションを開始します。</p>
                 </div>
               </div>
 
@@ -337,43 +337,35 @@
                     モード選択
                   </label>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <label class="mode-select-card cursor-pointer group">
-                      <input type="radio" name="mode" value="training" class="sr-only peer" checked>
-                      <div
-                        class="p-6 rounded-xl border-2 border-slate-200 hover:border-indigo-300 transition-all peer-checked:border-indigo-500 peer-checked:bg-white">
-                        <div class="flex items-center justify-between mb-2">
-                          <div class="flex items-center gap-3">
-                            <div class="p-2 rounded-lg bg-indigo-50 text-indigo-600">
-                              <i class="w-5 h-5" data-lucide="sparkles"></i>
-                            </div>
-                            <h4 class="font-semibold text-slate-900">訓練モード</h4>
+                    <label class="mode-select-card group">
+                      <input type="radio" name="mode" value="training" checked>
+                      <div class="mode-card">
+                        <div class="mode-card-content">
+                          <div class="mode-icon bg-indigo-50 text-indigo-600">
+                            <i class="w-6 h-6" data-lucide="sparkles"></i>
                           </div>
-                          <div
-                            class="w-5 h-5 rounded-full border-2 border-slate-300 peer-checked:border-indigo-500 peer-checked:bg-indigo-500 flex items-center justify-center">
-                            <i data-lucide="check" class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100"></i>
+                          <div class="mode-info">
+                            <h4>訓練モード</h4>
+                            <p>一問一答形式でフィードバック</p>
                           </div>
                         </div>
-                        <p class="text-sm text-slate-500 pl-[3.25rem]">一問一答形式で、回答直後にAIからのフィードバックを受け取れます。</p>
+                        <i data-lucide="check" class="check-icon"></i>
                       </div>
                     </label>
 
-                    <label class="mode-select-card cursor-pointer group">
-                      <input type="radio" name="mode" value="interview" class="sr-only peer">
-                      <div
-                        class="p-6 rounded-xl border-2 border-slate-200 hover:border-rose-300 transition-all peer-checked:border-rose-500 peer-checked:bg-white">
-                        <div class="flex items-center justify-between mb-2">
-                          <div class="flex items-center gap-3">
-                            <div class="p-2 rounded-lg bg-rose-50 text-rose-600">
-                              <i class="w-5 h-5" data-lucide="message-circle"></i>
-                            </div>
-                            <h4 class="font-semibold text-slate-900">本番モード</h4>
+                    <label class="mode-select-card group">
+                      <input type="radio" name="mode" value="interview">
+                      <div class="mode-card">
+                        <div class="mode-card-content">
+                          <div class="mode-icon bg-rose-50 text-rose-600">
+                            <i class="w-6 h-6" data-lucide="message-circle"></i>
                           </div>
-                          <div
-                            class="w-5 h-5 rounded-full border-2 border-slate-300 peer-checked:border-rose-500 peer-checked:bg-rose-500 flex items-center justify-center">
-                            <i data-lucide="check" class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100"></i>
+                          <div class="mode-info">
+                            <h4>本番モード</h4>
+                            <p>一連の面接と総合評価</p>
                           </div>
                         </div>
-                        <p class="text-sm text-slate-500 pl-[3.25rem]">一連の面接を行い、終了後に総合的な評価レポートを作成します。</p>
+                        <i data-lucide="check" class="check-icon"></i>
                       </div>
                     </label>
                   </div>
@@ -601,7 +593,7 @@
     <i data-lucide="arrow-up" class="w-6 h-6"></i>
   </button>
 
-  <script defer src="static/app.js"></script>
+  <script type="module" src="/static/js/main.js?v=3"></script>
 </body>
 
 </html>
