@@ -1,5 +1,5 @@
 import { state, loadProfileFromStorage, getDefaultProfile, saveProfileToStorage } from '../state.js';
-import { login, signup } from '../api.js';
+import { login, signup, fetchProfile } from '../api.js';
 import { renderProfile } from './profile.js';
 import { showToast, scrollToTop } from './core.js';
 // import { refreshHistory } from './dashboard.js'; // Injected
@@ -53,6 +53,15 @@ export async function handleAuth(event) {
         }
         renderProfile();
         showToast('ログインしました。', 'info');
+
+        try {
+            const remoteProfile = await fetchProfile();
+            state.profile = remoteProfile;
+            saveProfileToStorage(remoteProfile, state.currentUserId);
+            renderProfile();
+        } catch (profileError) {
+            console.warn('Failed to fetch profile from API, using local cache', profileError);
+        }
 
         // Switch view
         document.dispatchEvent(new CustomEvent('request-switch-view', { detail: { viewName: 'app' } }));

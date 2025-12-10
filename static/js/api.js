@@ -47,3 +47,18 @@ export async function signup(userId, password) {
         statusMessage: 'アカウントを作成しています…',
     });
 }
+
+export async function fetchProfile() {
+    return apiRequest('/profile', {
+        method: 'GET',
+        statusMessage: 'プロフィールを取得しています…',
+    });
+}
+
+export async function updateProfile(profile) {
+    return apiRequest('/profile', {
+        method: 'PUT',
+        body: JSON.stringify(profile),
+        statusMessage: 'プロフィールを保存しています…',
+    });
+}

@@ -1,6 +1,7 @@
 import { state, saveProfileToStorage, getDefaultProfile } from '../state.js';
 import { showToast, scrollToTop, iconMarkup } from './core.js';
 import { PROFILE_STATUS_DESCRIPTIONS, DEFAULT_AVATAR_SRC } from '../config.js';
+import { updateProfile } from '../api.js';
 
 export function renderProfile() {
     if (!state.profile) {
@@ -66,7 +67,7 @@ export function renderProfile() {
     if (profileAvatarInputEl) profileAvatarInputEl.value = '';
 }
 
-export function handleProfileSubmit(event) {
+export async function handleProfileSubmit(event) {
     event.preventDefault();
     const profileNameInputEl = document.getElementById('profile-name');
     const profileEmailInputEl = document.getElementById('profile-email');
@@ -82,13 +83,28 @@ export function handleProfileSubmit(event) {
         role: profileRoleInputEl?.value.trim() || '',
         notes: profileNotesInputEl?.value.trim() || '',
     };
-    state.profile = updatedProfile;
-    saveProfileToStorage(updatedProfile, state.currentUserId);
+    let savedProfile = { ...updatedProfile };
+    let syncedToServer = false;
+
+    if (state.token) {
+        try {
+            savedProfile = await updateProfile(updatedProfile);
+            syncedToServer = true;
+        } catch (error) {
+            console.warn('Failed to save profile to API, falling back to local storage', error);
+            showToast(error.message || 'プロフィールの保存に失敗しました。ブラウザにのみ保存しました。', 'error');
+        }
+    } else {
+        showToast('ログインするとサーバーに保存されます。今回はブラウザに保存しました。', 'warning');
+    }
+
+    state.profile = savedProfile;
+    saveProfileToStorage(savedProfile, state.currentUserId);
     renderProfile();
-    showToast('プロフィールを更新しました。', 'info');
+    showToast(syncedToServer ? 'プロフィールを更新しました。' : 'プロフィールをブラウザに保存しました。', syncedToServer ? 'info' : 'warning');
 }
 
-export function handleProfileAvatarChange(event) {
+export async function handleProfileAvatarChange(event) {
     const file = event.target?.files?.[0];
     if (!file) {
         return;
@@ -97,9 +113,28 @@ export function handleProfileAvatarChange(event) {
     reader.onload = (loadEvent) => {
         const dataUrl = typeof loadEvent.target?.result === 'string' ? loadEvent.target.result : null;
         state.profile.avatarData = dataUrl;
-        saveProfileToStorage(state.profile, state.currentUserId);
-        renderProfile();
-        showToast('プロフィール画像を更新しました。', 'info');
+        const payload = { ...state.profile };
+
+        const persist = async () => {
+            if (state.token) {
+                try {
+                    const saved = await updateProfile(payload);
+                    state.profile = saved;
+                    saveProfileToStorage(state.profile, state.currentUserId);
+                    renderProfile();
+                    showToast('プロフィール画像を更新しました。', 'info');
+                    return;
+                } catch (error) {
+                    console.warn('Failed to save avatar to API, falling back to local storage', error);
+                    showToast(error.message || 'プロフィール画像の保存に失敗しました。ブラウザにのみ保存しました。', 'error');
+                }
+            }
+            saveProfileToStorage(state.profile, state.currentUserId);
+            renderProfile();
+            showToast(state.token ? 'プロフィール画像をブラウザに保存しました。' : 'ログインするとサーバーに保存されます。今回はブラウザに保存しました。', 'warning');
+        };
+
+        persist();
     };
     reader.readAsDataURL(file);
 }

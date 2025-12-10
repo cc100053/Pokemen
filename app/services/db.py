@@ -287,6 +287,12 @@ class DatabaseService(Protocol):
     def get_user(self, user_id: str) -> Optional[Dict]:
         ...
 
+    def get_profile(self, user_id: str) -> Optional[Dict]:
+        ...
+
+    def upsert_profile(self, user_id: str, profile: Dict) -> None:
+        ...
+
     def create_interview(self, user_id: str, payload: Dict) -> str:
         ...
 
@@ -312,6 +318,7 @@ class InMemoryDatabaseService:
     def __init__(self):
         self._users: Dict[str, Dict] = {}
         self._interviews: Dict[str, Dict] = {}
+        self._profiles: Dict[str, Dict] = {}
 
     def create_user(self, user_id: str, password_hash: str) -> None:
         self._users[user_id] = {"user_id": user_id, "password_hash": password_hash}
@@ -319,6 +326,13 @@ class InMemoryDatabaseService:
     def get_user(self, user_id: str) -> Optional[Dict]:
         record = self._users.get(user_id)
         return deepcopy(record) if record else None
+
+    def get_profile(self, user_id: str) -> Optional[Dict]:
+        record = self._profiles.get(user_id)
+        return deepcopy(record) if record else None
+
+    def upsert_profile(self, user_id: str, profile: Dict) -> None:
+        self._profiles[user_id] = deepcopy(profile)
 
     def create_interview(self, user_id: str, payload: Dict) -> str:
         interview_id = f"interview_{len(self._interviews) + 1}"
@@ -402,6 +416,21 @@ class SQLiteDatabaseService:
             )
             self._conn.execute(
                 """
+                CREATE TABLE IF NOT EXISTS user_profiles (
+                    user_id TEXT PRIMARY KEY,
+                    name TEXT,
+                    email TEXT,
+                    status TEXT,
+                    role TEXT,
+                    notes TEXT,
+                    avatar_data TEXT,
+                    updated_at TEXT,
+                    FOREIGN KEY(user_id) REFERENCES users(user_id)
+                )
+                """
+            )
+            self._conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS interviews (
                     id TEXT PRIMARY KEY,
                     user_id TEXT NOT NULL,
@@ -458,6 +487,54 @@ class SQLiteDatabaseService:
             logger.info("Adding summary_report column to interviews table")
             with self._lock, self._conn:
                 self._conn.execute("ALTER TABLE interviews ADD COLUMN summary_report TEXT")
+
+    def get_profile(self, user_id: str) -> Optional[Dict]:
+        cursor = self._conn.execute(
+            """
+            SELECT user_id, name, email, status, role, notes, avatar_data
+            FROM user_profiles
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return {
+            "userId": row["user_id"],
+            "name": row["name"] or "",
+            "email": row["email"] or "",
+            "status": row["status"] or "",
+            "role": row["role"] or "",
+            "notes": row["notes"] or "",
+            "avatarData": row["avatar_data"],
+        }
+
+    def upsert_profile(self, user_id: str, profile: Dict) -> None:
+        with self._lock, self._conn:
+            self._conn.execute(
+                """
+                INSERT INTO user_profiles (user_id, name, email, status, role, notes, avatar_data, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                ON CONFLICT(user_id) DO UPDATE SET
+                    name = excluded.name,
+                    email = excluded.email,
+                    status = excluded.status,
+                    role = excluded.role,
+                    notes = excluded.notes,
+                    avatar_data = excluded.avatar_data,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    user_id,
+                    profile.get("name", ""),
+                    profile.get("email", ""),
+                    profile.get("status", ""),
+                    profile.get("role", ""),
+                    profile.get("notes", ""),
+                    profile.get("avatarData"),
+                ),
+            )
 
     def _deserialize_transcript(self, value) -> List[Dict[str, str]]:
         if value is None:
@@ -678,6 +755,45 @@ class CosmosDatabaseService:
             "user_id": clean.get("id") or clean.get("userId"),
             "password_hash": clean.get("password_hash"),
         }
+
+    def get_profile(self, user_id: str) -> Optional[Dict]:
+        user = self.get_user(user_id)
+        if user is None:
+            return None
+        try:
+            document = self._users_container.read_item(item=user_id, partition_key=user_id)
+        except exceptions.CosmosResourceNotFoundError:
+            return None
+        profile = document.get("profile")
+        if not isinstance(profile, dict):
+            return None
+        return {
+            "userId": user_id,
+            "name": profile.get("name", ""),
+            "email": profile.get("email", ""),
+            "status": profile.get("status", ""),
+            "role": profile.get("role", ""),
+            "notes": profile.get("notes", ""),
+            "avatarData": profile.get("avatarData"),
+        }
+
+    def upsert_profile(self, user_id: str, profile: Dict) -> None:
+        try:
+            document = self._users_container.read_item(item=user_id, partition_key=user_id)
+        except exceptions.CosmosResourceNotFoundError as exc:
+            raise KeyError(f"User {user_id} not found") from exc
+
+        document["profile"] = {
+            "name": profile.get("name", ""),
+            "email": profile.get("email", ""),
+            "status": profile.get("status", ""),
+            "role": profile.get("role", ""),
+            "notes": profile.get("notes", ""),
+            "avatarData": profile.get("avatarData"),
+            "updated_at": profile.get("updated_at"),
+        }
+        partition_value = document.get(self._users_partition_key_field) or document.get("id")
+        self._users_container.replace_item(item=user_id, body=document, partition_key=partition_value)
 
     def create_interview(self, user_id: str, payload: Dict) -> str:
         interview_id = str(uuid4())

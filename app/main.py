@@ -17,7 +17,7 @@ from app.services.ai import speechsdk
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-from app.routers import auth, interview
+from app.routers import auth, interview, profile
 from app.routers.interview import chat_router
 
 
@@ -37,6 +37,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router) #認証のルーター、もし/authが来れば認証のルーターを呼び出す
     app.include_router(interview.router) #面接のルーター
     app.include_router(chat_router) #チャットのルーター
+    app.include_router(profile.router) #プロフィールのルーター
 
     app.mount("/static", StaticFiles(directory="static"), name="static") #staticのルーター
 
